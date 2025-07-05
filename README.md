@@ -1,6 +1,6 @@
 # Custom Highlights for Neovim
 
-Easy configuration for highlight groups in Neovim. Allows for globally linking highlight group to other highligh groups, and manually setting colors from each colorschemes palette separately.
+Easy configuration for highlight groups in Neovim. Allows for globally linking highlight groups to other highlight groups, and manually setting colors from each colorschemes palette separately.
 
 ## Install 
 
@@ -47,3 +47,4 @@ opts = {
 ## Supported colorschemes
 
  * Catppuccin: [GitHub](https://github.com/catppuccin/nvim), [Palette](https://catppuccin.com/palette/)
+ * Tokyonight: [GitHub](https://github.com/folke/tokyonight.nvim), For palette run `require("tokyonight.colors").setup()`

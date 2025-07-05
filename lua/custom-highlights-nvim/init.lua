@@ -2,39 +2,46 @@ local M = {}
 
 local colorschemes = {
     catppuccin = {
-        pattern = "catppuccin",
+        pattern = "catppuccin*",
         palette = function()
-            local name = vim.g.colors_name
-            local flavour = string.gsub(name, "catppuccin%-", "")
-            local palette = require("catppuccin.palettes").get_palette(flavour)
-
-            return palette
+            return require("catppuccin.palettes").get_palette()
+        end
+    },
+    tokyonight = {
+        pattern = "tokyonight*",
+        palette = function()
+            return require("tokyonight.colors").setup()
         end
     }
 }
 
-local resolve_colors = function(palette, colors)
-    local resolved_colors = {}
+local resolve_colors = function(palette, name, colors)
+    local palette_or_color_code = function(id)
+        if not id then return nil end
 
-    if colors.fg then
-        resolved_colors.fg = palette[colors.fg]
+        if string.match(id, "^#\\w{6}$") then
+            return id
+        elseif not palette[id] then
+            vim.notify(string.format("custom-highlights-nvim: No color %q available in colorscheme %q", id, name),
+                "warn")
+        end
+
+        return palette[id]
     end
 
-    if colors.bg then
-        resolved_colors.bg = palette[colors.bg]
-    end
-
-    if colors.italic then
-        resolved_colors.italic = colors.italic
-    end
-
-    return resolved_colors
+    return {
+        fg = palette_or_color_code(colors.fg),
+        bg = palette_or_color_code(colors.bg),
+        italic = colors.italic
+    }
 end
 
-local apply_customizations = function(palette, highlights)
+local apply_customizations = function(name, highlights)
+    local palette = colorschemes[name].palette()
+
     for _, h in ipairs(highlights) do
         local group = h[1]
-        local colors = resolve_colors(palette, h[2])
+        local colors = resolve_colors(palette, name, h[2])
 
         vim.api.nvim_set_hl(0, group, colors)
     end
@@ -47,18 +54,52 @@ local apply_links = function(links)
 end
 
 M.setup = function(opts)
-    apply_links(opts.links)
-
     vim.api.nvim_create_augroup('ColorCallback', { clear = true })
 
+    vim.api.nvim_create_autocmd('VimEnter', {
+        group = 'ColorCallback',
+        callback = function()
+            apply_links(opts.links)
+
+            local current_colorscheme = vim.g.colors_name
+
+            if not current_colorscheme then return end
+
+            for name, c in pairs(colorschemes) do
+                if string.match(current_colorscheme, c.pattern) then
+                    local highlights = opts.customizations[name]
+
+                    if highlights then
+                        apply_customizations(name, highlights)
+                        break
+                    end
+                end
+            end
+        end,
+    })
+
+    vim.api.nvim_create_autocmd('ColorScheme', {
+        group = 'ColorCallback',
+        pattern = "*",
+        desc = "Apply global links when switching to any colorscheme.",
+        callback = function()
+            apply_links(opts.links)
+        end,
+    })
+
     for name, highlights in pairs(opts.customizations) do
-        vim.api.nvim_create_autocmd('ColorScheme', {
-            group = 'ColorCallback',
-            pattern = colorschemes[name].pattern,
-            callback = function()
-                apply_customizations(colorschemes[name].palette(), highlights)
-            end,
-        })
+        if not colorschemes[name] then
+            vim.notify(string.format("custom-highlights-nvim: Colorscheme %q not supported", name), "error")
+        else
+            vim.api.nvim_create_autocmd('ColorScheme', {
+                group = 'ColorCallback',
+                pattern = colorschemes[name].pattern,
+                desc = "Apply colorscheme-specific customizations.",
+                callback = function()
+                    apply_customizations(name, highlights)
+                end,
+            })
+        end
     end
 end
 
