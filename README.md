@@ -9,7 +9,6 @@ Easy configuration for highlight groups in Neovim. Allows for globally linking h
 ```lua
 return {
     "viktoraxen/custom-highlights-nvim",
-    event = "Vimenter",
     opts = { ... }
 }
 ```

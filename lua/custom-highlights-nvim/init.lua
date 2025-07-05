@@ -75,12 +75,6 @@ M.setup = function(opts)
         end
     end
 
-    vim.api.nvim_create_autocmd('VimEnter', {
-        group    = 'CustomHighlights',
-        desc     = "Apply links, and potential customizations",
-        callback = apply
-    })
-
     vim.api.nvim_create_autocmd('ColorScheme', {
         group    = 'CustomHighlights',
         pattern  = "*",
