@@ -1,0 +1,49 @@
+# Custom Highlights for Neovim
+
+Easy configuration for highlight groups in Neovim. Allows for globally linking highlight group to other highligh groups, and manually setting colors from each colorschemes palette separately.
+
+## Install 
+
+### Lazy
+
+```lua
+return {
+    "viktoraxen/custom-highlights-nvim",
+    event = "Vimenter",
+    opts = { ... }
+}
+```
+
+## Configuration
+
+### Links
+
+Linking highlight groups is done by setting the `links` field in `opts`.
+
+```lua
+opts = {
+    links = {
+        { src = "NormalFloat", dst = "Normal" },
+        { src = "FloatBorder", dst = "Title" },
+    }
+}
+```
+
+### Colorschemes
+
+Changing a highlight group for a specific colorscheme is done by changing the `customizations.<colorscheme_name>` fields in `opts`. Only works for supported colorschemes.
+
+```lua
+opts = {
+    customizations = {
+        catppuccin = {
+            -- All fields (fg, bg, italic) are optional, omitting one will leave it unchanged
+            { 'WinSeparator', { fg = 'crust', bg = 'surface0', italic = false }}
+        }
+    }
+}
+```
+
+## Supported colorschemes
+
+ * Catppuccin: [GitHub](https://github.com/catppuccin/nvim), [Palette](https://catppuccin.com/palette/)
