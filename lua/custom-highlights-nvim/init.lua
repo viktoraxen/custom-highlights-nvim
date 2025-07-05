@@ -54,53 +54,39 @@ local apply_links = function(links)
 end
 
 M.setup = function(opts)
-    vim.api.nvim_create_augroup('ColorCallback', { clear = true })
+    vim.api.nvim_create_augroup('CustomHighlights', { clear = true })
 
-    vim.api.nvim_create_autocmd('VimEnter', {
-        group = 'ColorCallback',
-        callback = function()
-            apply_links(opts.links)
+    local apply = function()
+        apply_links(opts.links)
 
-            local current_colorscheme = vim.g.colors_name
+        local current_colorscheme = vim.g.colors_name
 
-            if not current_colorscheme then return end
+        if not current_colorscheme then return end
 
-            for name, c in pairs(colorschemes) do
-                if string.match(current_colorscheme, c.pattern) then
-                    local highlights = opts.customizations[name]
+        for name, c in pairs(colorschemes) do
+            if string.match(current_colorscheme, c.pattern) then
+                local highlights = opts.customizations[name]
 
-                    if highlights then
-                        apply_customizations(name, highlights)
-                        break
-                    end
+                if highlights then
+                    apply_customizations(name, highlights)
+                    break
                 end
             end
-        end,
+        end
+    end
+
+    vim.api.nvim_create_autocmd('VimEnter', {
+        group    = 'CustomHighlights',
+        desc     = "Apply links, and potential customizations",
+        callback = apply
     })
 
     vim.api.nvim_create_autocmd('ColorScheme', {
-        group = 'ColorCallback',
-        pattern = "*",
-        desc = "Apply global links when switching to any colorscheme.",
-        callback = function()
-            apply_links(opts.links)
-        end,
+        group    = 'CustomHighlights',
+        pattern  = "*",
+        desc     = "Apply links, and potential customizations",
+        callback = apply
     })
-
-    for name, highlights in pairs(opts.customizations) do
-        if not colorschemes[name] then
-            vim.notify(string.format("custom-highlights-nvim: Colorscheme %q not supported", name), "error")
-        else
-            vim.api.nvim_create_autocmd('ColorScheme', {
-                group = 'ColorCallback',
-                pattern = colorschemes[name].pattern,
-                desc = "Apply colorscheme-specific customizations.",
-                callback = function()
-                    apply_customizations(name, highlights)
-                end,
-            })
-        end
-    end
 end
 
 return M
