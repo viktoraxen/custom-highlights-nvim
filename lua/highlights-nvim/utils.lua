@@ -39,13 +39,17 @@ M.blend = function(what, into, amount)
 end
 
 M.get_hl = function(name)
-    local hl = vim.api.nvim_get_hl(0, { name = name })
+    local seen = {}
 
-    if hl.link then
-        return M.get_hl(hl.link)
+    while true do
+        if seen[name] then return {} end
+        seen[name] = true
+
+        local hl = vim.api.nvim_get_hl(0, { name = name })
+
+        if not hl.link then return hl end
+        name = hl.link
     end
-
-    return hl
 end
 
 M.adjust_brightness = function(color, amount)

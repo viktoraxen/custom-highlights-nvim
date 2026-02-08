@@ -75,13 +75,34 @@ local function resolve_color(group, hl, palette)
     return vim.tbl_deep_extend("force", current_hl, hl)
 end
 
+local function active_colorscheme_matches(cs)
+    local current = vim.g.colors_name or ""
+    local pattern = colorschemes[cs] and colorschemes[cs].pattern or ""
+    return vim.fn.match(current, vim.fn.glob2regpat(pattern)) ~= -1
+end
+
 local function apply_customizations(customizations, colorscheme)
+    local palette = nil
+
+    if colorscheme then
+        if not active_colorscheme_matches(colorscheme) then return end
+
+        local ok, result = pcall(colorschemes[colorscheme].palette)
+        if ok then
+            palette = result
+        else
+            vim.notify(
+                string.format("highlights-nvim: Failed to load palette for %q: %s", colorscheme, result),
+                vim.log.levels.WARN
+            )
+            return
+        end
+    end
+
     for group, hl in pairs(customizations) do
         if colorschemes[group] then
             apply_customizations(customizations[group], group)
         else
-            local palette = colorscheme and colorschemes[colorscheme].palette() or nil
-
             local new_hl = resolve_color(group, hl, palette)
 
             if new_hl then
