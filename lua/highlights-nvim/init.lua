@@ -63,7 +63,7 @@ local function resolve_color(group, hl, palette)
         end
 
         if id == "contrast" then
-            return vim.o.background == "dark" and "#000000" or "#ffffff"
+            return utils.is_dark_bg() and "#000000" or "#ffffff"
         end
 
         if string.find(id, "|", 1, true) then

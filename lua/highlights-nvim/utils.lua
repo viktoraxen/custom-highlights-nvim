@@ -73,4 +73,23 @@ M.adjust_brightness = function(color, amount)
     return r * 65536 + g * 256 + b
 end
 
+M.luminance = function(color)
+    color = M.ensure_number(color)
+    color = math.max(0, math.min(0xFFFFFF, color))
+
+    local r = math.floor(color / 65536) % 256
+    local g = math.floor(color / 256) % 256
+    local b = color % 256
+
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255
+end
+
+M.is_dark_bg = function()
+    local normal = M.get_hl("Normal")
+    if normal.bg then
+        return M.luminance(normal.bg) <= 0.5
+    end
+    return vim.o.background == "dark"
+end
+
 return M
