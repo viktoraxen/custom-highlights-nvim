@@ -101,10 +101,21 @@ local function resolve_color(group, hl, palette)
     current_hl.bg = current_hl.bg and string.format("#%06x", current_hl.bg)
     current_hl.fg = current_hl.fg and string.format("#%06x", current_hl.fg)
 
-    resolved.fg = resolved.fg and resolve_attr(resolved.fg, "fg")
-    resolved.bg = resolved.bg and resolve_attr(resolved.bg, "bg")
+    if resolved.fg == false then resolved.fg = nil
+    elseif resolved.fg then resolved.fg = resolve_attr(resolved.fg, "fg")
+    end
 
-    return vim.tbl_deep_extend("force", current_hl, resolved)
+    if resolved.bg == false then resolved.bg = nil
+    elseif resolved.bg then resolved.bg = resolve_attr(resolved.bg, "bg")
+    end
+
+    local result = vim.tbl_deep_extend("force", current_hl, resolved)
+
+    for k, v in pairs(hl) do
+        if v == false then result[k] = nil end
+    end
+
+    return result
 end
 
 local function apply_scheme_customizations(groups, palette)
