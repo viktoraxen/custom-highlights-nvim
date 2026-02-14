@@ -69,6 +69,10 @@ local function resolve_color(group, hl, palette)
       return utils.is_dark_bg() and "#000000" or "#ffffff"
     end
 
+    if id == "highlight" then
+      return utils.is_dark_bg() and "#ffffff" or "#000000"
+    end
+
     if string.find(id, "|", 1, true) then
       local parts = vim.split(id, "|")
       local a = resolve_attr(parts[1], attr)

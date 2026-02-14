@@ -148,13 +148,14 @@ opts = {
 
 ### Auto-contrast based on dark/light background
 
-Use `"contrast"` to get black on dark backgrounds and white on light ones:
+Use `"contrast"` to get black on dark backgrounds and white on light ones — useful for subtle, low-contrast elements. Use `"highlight"` for the opposite: white on dark and black on light, making colors stand out against the background.
 
 ```lua
 opts = {
     customizations = {
         ["*"] = {
             CursorLineNr = { fg = "contrast" },
+            IncSearch = { fg = "highlight" },
         },
     },
 }
@@ -211,4 +212,5 @@ require("highlights-nvim").add({
 | Highlight group | `"Normal"` | Use that group's `fg` or `bg` |
 | Blend | `"Normal\|#000000\|0.7"` | Mix two colors together |
 | `"contrast"` | `"contrast"` | Black on dark backgrounds, white on light |
+| `"highlight"` | `"highlight"` | White on dark backgrounds, black on light |
 | `false` | `false` | Remove the attribute |
