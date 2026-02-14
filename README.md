@@ -2,6 +2,10 @@
 
 Customize Neovim highlight groups across colorschemes. Highlights are automatically reapplied when you switch colorschemes.
 
+### Why?
+
+This plugin serves as a unified interface towards keeping a tidy and customizable look across different colorschemes, without fine-tuning every schemes colors manually. Have a look at the example setups for inspiration on what this can be used for!
+
 ## Install
 
 ### [lazy.nvim](https://github.com/folke/lazy.nvim)
@@ -57,6 +61,7 @@ Palette references:
 ### Use any other colorscheme
 
 Any colorscheme name works as a key — just use hex colors instead of palette names:
+
 
 ```lua
 opts = {
