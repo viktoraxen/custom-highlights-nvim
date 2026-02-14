@@ -1,8 +1,6 @@
 # highlights-nvim
 
-A Neovim plugin for configuring highlight groups. Link highlights to each other, customize colors per colorscheme, and blend colors together — all from a single configuration table.
-
-Highlights are automatically reapplied whenever you change your colorscheme.
+Customize Neovim highlight groups across colorschemes. Highlights are automatically reapplied when you switch colorschemes.
 
 ## Install
 
@@ -18,120 +16,173 @@ return {
 }
 ```
 
-## Configuration
+## Examples
 
-The plugin accepts two top-level fields: `links` and `customizations`.
+### Make floating windows match your background
 
-Both support **global** entries under the `"*"` key (applied to every colorscheme) and **per-scheme** entries that only apply when the matching colorscheme is active. Per-scheme entries override global ones.
-
-### Links
-
-Link one highlight group to another. Useful for making groups like `NormalFloat` inherit from `Normal`.
-
-**Global links** (apply to all colorschemes):
+Use `links` to make one highlight group inherit from another:
 
 ```lua
 opts = {
     links = {
         ["*"] = {
             NormalFloat = "Normal",
-            FloatBorder = "Title",
+            FloatBorder = "Normal",
         },
     },
 }
 ```
 
-**Per-scheme links** (only apply when that colorscheme is active):
+### Change colors for a specific colorscheme
 
-```lua
-opts = {
-    links = {
-        ["*"] = {
-            NormalFloat = "Normal",
-        },
-        catppuccin = {
-            FloatBorder = "Title",
-        },
-    },
-}
-```
-
-### Customizations
-
-Set specific attributes (`fg`, `bg`, `bold`, `italic`, etc.) on highlight groups. Omitted attributes are left unchanged.
+Use the colorscheme name as a key. For Catppuccin and Tokyonight, you can reference palette color names directly:
 
 ```lua
 opts = {
     customizations = {
         catppuccin = {
-            WinSeparator = { fg = "crust", bg = "surface0", italic = false },
+            WinSeparator = { fg = "crust", bg = "surface0" },
         },
         tokyonight = {
-            Normal = { fg = "#c0caf5" },
+            LineNr = { fg = "#565f89" },
         },
+    },
+}
+```
+
+Palette references:
+- **[Catppuccin](https://github.com/catppuccin/nvim)** — [palette](https://catppuccin.com/palette/)
+- **[Tokyonight](https://github.com/folke/tokyonight.nvim)** — run `:lua print(vim.inspect(require("tokyonight.colors").setup()))` to list colors
+
+### Use any other colorscheme
+
+Any colorscheme name works as a key — just use hex colors instead of palette names:
+
+```lua
+opts = {
+    customizations = {
+        gruvbox = {
+            WinSeparator = { fg = "#928374", bg = "#282828" },
+        },
+    },
+}
+```
+
+To use palette names with other colorschemes, register them through the `colorschemes` field:
+
+```lua
+opts = {
+    colorschemes = {
+        gruvbox = {
+            pattern = "gruvbox*",
+            palette = function()
+                return {
+                    bg0    = "#282828",
+                    fg0    = "#fbf1c7",
+                    red    = "#cc241d",
+                    green  = "#98971a",
+                }
+            end,
+        },
+    },
+    customizations = {
+        gruvbox = {
+            WinSeparator = { fg = "bg0" },
+            Comment = { fg = "green" },
+        },
+    },
+}
+```
+
+`pattern` controls which colorscheme names activate this entry (e.g. `"gruvbox*"` matches `gruvbox`, `gruvbox-material`, etc.). `palette` returns a table of names to hex colors — you can define these inline or load them from the colorscheme's own module.
+
+### Remove italic from comments
+
+Set any attribute to `false` to remove it:
+
+```lua
+opts = {
+    customizations = {
         ["*"] = {
-            Visual = { bg = "#3b4261" },
+            Comment = { italic = false },
         },
     },
 }
 ```
 
-### Color values
+### Blend two colors together
 
-Colors in customizations can be specified in several ways:
-
-| Format | Example | Description |
-| --- | --- | --- |
-| Hex string | `"#ff5555"` | A literal hex color |
-| Palette name | `"crust"` | A named color from the active colorscheme's palette |
-| Highlight group | `"Normal"` | Copies the matching attribute (`fg` or `bg`) from that group |
-| Blend expression | `"Normal\|#000000\|0.7"` | Blends two colors together (see [Blending](#blending)) |
-| `"contrast"` | `"contrast"` | Resolves to `#000000` on dark backgrounds, `#ffffff` on light |
-| `false` | `false` | Removes the attribute entirely |
-
-### Blending
-
-The blend syntax is `"color_a|color_b|amount"` where `amount` is a number between `0` and `1`. At `0` you get `color_b`; at `1` you get `color_a`. If omitted, `amount` defaults to `0.5`.
-
-Each side of the blend can itself be any color value (hex, palette name, or highlight group).
+Use the `"color_a|color_b|amount"` syntax. `amount` controls how much of `color_a` to mix in (`0` = all `color_b`, `1` = all `color_a`, default `0.5`). Each side can be a hex color, palette name, or highlight group name.
 
 ```lua
-customizations = {
-    catppuccin = {
-        -- Blend Normal's foreground 70% toward black
-        Comment = { fg = "Normal|#000000|0.3" },
-        -- Blend two palette colors equally
-        CursorLine = { bg = "base|surface0|0.5" },
+opts = {
+    customizations = {
+        catppuccin = {
+            -- Darken Normal's foreground
+            Comment = { fg = "Normal|#000000|0.3" },
+            -- Mix two palette colors
+            CursorLine = { bg = "base|surface0|0.5" },
+        },
     },
 }
 ```
 
-### Removing attributes
+### Borrow a color from another highlight group
 
-Set an attribute to `false` to remove it from the resolved highlight:
+Use a highlight group name as a color value to copy its `fg` or `bg`:
 
 ```lua
-customizations = {
-    ["*"] = {
-        Comment = { italic = false },
+opts = {
+    customizations = {
+        ["*"] = {
+            StatusLine = { bg = "Normal" },
+        },
     },
 }
 ```
 
-## Supported colorschemes
+### Auto-contrast based on dark/light background
 
-The following colorschemes have built-in palette support, meaning you can reference palette color names directly in your customizations:
+Use `"contrast"` to get black on dark backgrounds and white on light ones:
 
-- **[Catppuccin](https://github.com/catppuccin/nvim)** — [palette reference](https://catppuccin.com/palette/)
-- **[Tokyonight](https://github.com/folke/tokyonight.nvim)** — run `:lua print(vim.inspect(require("tokyonight.colors").setup()))` to see available names
+```lua
+opts = {
+    customizations = {
+        ["*"] = {
+            CursorLineNr = { fg = "contrast" },
+        },
+    },
+}
+```
 
-For any other colorscheme, you can still use hex colors, highlight group references, blending, and `"contrast"` — palette names are the only feature that requires built-in support.
+### Apply different settings per colorscheme with shared defaults
 
-## API
+`"*"` entries apply to all colorschemes. Per-scheme entries override them:
 
-### `require("highlights-nvim").add(opts)`
+```lua
+opts = {
+    links = {
+        ["*"] = {
+            NormalFloat = "Normal",
+        },
+        catppuccin = {
+            FloatBorder = "Title",
+        },
+    },
+    customizations = {
+        ["*"] = {
+            Comment = { italic = false },
+        },
+        catppuccin = {
+            WinSeparator = { fg = "crust" },
+        },
+    },
+}
+```
 
-Merge additional configuration and apply it immediately. Useful for adding highlights from other plugin configs:
+### Add highlights from another plugin's config
+
+Use `require("highlights-nvim").add()` to merge configuration from anywhere:
 
 ```lua
 require("highlights-nvim").add({
@@ -146,6 +197,13 @@ require("highlights-nvim").add({
 })
 ```
 
-### `require("highlights-nvim").apply_highlights()`
+## Color value reference
 
-Reapply all configured links and customizations. Called automatically on every `ColorScheme` event — you normally don't need to call this yourself.
+| Value | Example | What it does |
+| --- | --- | --- |
+| Hex color | `"#ff5555"` | Use this exact color |
+| Palette name | `"crust"` | Look up from the colorscheme palette |
+| Highlight group | `"Normal"` | Use that group's `fg` or `bg` |
+| Blend | `"Normal\|#000000\|0.7"` | Mix two colors together |
+| `"contrast"` | `"contrast"` | Black on dark backgrounds, white on light |
+| `false` | `false` | Remove the attribute |
